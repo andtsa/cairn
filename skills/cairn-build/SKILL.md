@@ -9,11 +9,14 @@ description: >-
   "document this codebase as a graph", or pointing cairn at a new (possibly
   large) project. Trigger it even when the user describes the outcome without
   naming the file, as long as they want a cairn config produced. Also covers
-  writing or refreshing a waymark.md (a codebase's short summary file that
-  cairn displays), e.g. "write a waymark", "update the waymark".
+  waymarks — `waymark.md`, a codebase's short, kept-current summary, which can
+  exist with or without a cairn map: writing one ("write a waymark", "summarise
+  this repo for newcomers"), refreshing one after changes ("update the
+  waymark"), and reading them to orient in an unfamiliar codebase (look for a
+  waymark.md before exploring, or when asked "what is this codebase about?").
 ---
 
-# cairn config author
+# cairn: maps and waymarks
 
 ## What cairn is (context you need)
 
@@ -28,9 +31,21 @@ intent**: named groupings, labels, source bindings, and relationships. It is
 deliberately sparse — anything a machine can derive (nesting level, exact
 positions, per-file detail) is *not* authored by hand.
 
-Your job: explore a codebase and write a first-draft intent file that a developer
-would recognize as a faithful, navigable map — then hand it to them to refine in
-the UI.
+cairn's second artifact is the **waymark** (`waymark.md`): a one-screen prose
+summary of a codebase, kept current in place. The map is the in-depth graph; the
+waymark is what you read first. The two are **independent** — a repo can have a
+waymark and no map (it's plain markdown, useful to anyone), a map and no waymark,
+or both. When both exist, cairn shows the waymark in the map's UI.
+
+This skill covers three jobs. Pick the one you're doing:
+
+- **Build a map**: the Guiding principle, Methodology and Output sections below.
+  A first-draft intent file a developer would recognize as a faithful, navigable
+  map, handed to them to refine in the UI. Write a waymark alongside it (step 8).
+- **Write or refresh a waymark**, with or without a map: see **Waymarks** at the
+  end. You don't need to build a map to write one.
+- **Read waymarks** to orient yourself in a codebase: also **Waymarks**, under
+  "Reading waymarks". Do this before exploring an unfamiliar codebase.
 
 ## Guiding principle: a readable onboarding map, not a file tree
 
@@ -331,20 +346,10 @@ before finishing.
 
 ### 8. Write (or refresh) the waymark
 
-The map is the in-depth graph; a **waymark** (`waymark.md` at the codebase root)
-is its one-screen prose companion, answering "what is this codebase about?". You
-have just built the mental model it needs, so write one alongside the map unless
-the user says otherwise. Read `references/waymark-format.md` for the outline.
-Keep it under ~60 lines: identity, the major parts (mirroring the map's top-level
-systems), entry points, and optionally conventions and status.
-
-If a `waymark.md` already exists, **update it in place** rather than replacing it
-wholesale: keep what's still true, fix what drifted, and preserve the author's
-voice. A waymark describes the codebase as it is now, never its history.
-
-For composed maps, each included subproject can carry its own `waymark.md` at its
-root, and cairn attaches it to the mount node. The same goes for any directory a
-node binds to.
+You have just built the mental model a waymark needs, so write one alongside the
+map unless the user says otherwise; its "Shape" section mirrors the map's
+top-level systems. If one already exists, refresh it in place instead. Follow
+**Waymarks → Writing a waymark** below.
 
 ## Output
 
@@ -407,3 +412,96 @@ edges:
 Note the shape: three systems in distinct zones, a couple of modules each, edges
 that explain how the pieces talk — and it stops there rather than listing every
 file.
+
+## Waymarks
+
+A waymark is `waymark.md` at the root of the codebase it describes: an in-place,
+continuously updated, single-file summary that answers *"what is this codebase
+about?"* in about a minute of reading. `references/waymark-format.md` has the
+full format: outline, length, what stays out, and the markdown cairn renders.
+
+It does **not** depend on a map. It is plain markdown that any person or agent
+can read straight from the file; cairn adds a way to show it next to a map, but
+nothing about a waymark requires cairn.
+
+### Writing a waymark
+
+1. **Check for an existing one first** (see "Finding waymarks" below). If there
+   is one, refresh it rather than starting over.
+2. **Build the mental model cheaply**, as in Methodology step 1: manifests,
+   README / docs, the top two or three levels of the tree, entry points. If a
+   `cairn.yaml` exists, read its top level: its systems are your "Shape" section.
+   If none exists, you don't need one; a waymark is much cheaper than a map.
+3. **Write it** at the root of the codebase, following the outline in
+   `references/waymark-format.md`: what it is and why it exists, its major parts
+   (3–7, by role rather than by folder), how to build / run / test and where to
+   start reading, then optionally conventions and current status. Stay under
+   ~60 lines.
+4. **Verify everything concrete.** Every path you name must exist, and every
+   command must be the real one (read the manifest or CI config; run it if it's
+   cheap and safe). A waymark that sends the reader to a dead path is worse than
+   none.
+5. **Don't restate the README.** A README usually serves users (install, usage);
+   a waymark serves someone about to work *in* the code. Link to the README
+   instead of copying from it.
+
+For a repo made of several codebases (a monorepo, a workspace of services), write
+one waymark at the root for the whole, and optionally one per sub-codebase at its
+own root. Each describes only its own scope.
+
+### Refreshing a waymark
+
+A waymark describes the codebase **as it is now**. Refresh it when a change makes
+any line of it wrong: a new or retired major part, a changed entry point or
+command, a shift in status. A good habit is to check it at the end of any task
+that changed the codebase's structure.
+
+- **Edit in place**: keep what's still true, fix what drifted, and preserve the
+  author's voice and choices. Don't rewrite a correct waymark to your own taste.
+- **No history**: never append "Update: …" lines or a changelog. If something
+  was removed, remove it from the waymark too.
+- **Keep it short**: if it is growing past a screen, move detail out (into the
+  map, the docs, or nowhere) rather than adding length.
+
+### Reading waymarks
+
+When you start work in a codebase you don't know, **look for waymarks before
+exploring**. They are the cheapest accurate overview available.
+
+**Finding waymarks.** Look at the repo root, then in the directory you're working
+in and each of its ancestors. To list them all:
+
+```bash
+find . -name waymark.md -not -path '*/node_modules/*' -not -path '*/.git/*'
+```
+
+Don't rely on `git ls-files` or plain `rg --files`: a waymark kept as personal
+tooling is often git-ignored in a shared repo, and those skip ignored files
+(`rg --files -uu -g waymark.md` works).
+
+**Using them.** Read the root waymark for the overall picture, then the one
+nearest your work for local detail. Then go deeper: the map (`cairn.yaml`) if
+there is one, then the code.
+
+**Trust, but verify.** A waymark is a summary and can lag behind the code. Check
+the paths and commands it names before relying on them. If you find it wrong,
+fix it (or tell the user it's out of date). Readers keeping it correct is how it
+stays current.
+
+**Through cairn.** When a map is served (`cairn serve`), cairn finds waymarks
+itself and attaches them where it can:
+
+- the map's own root: a `waymark.md` in the directory `project.root` resolves to;
+- an `include:` mount: a `waymark.md` at the root of the included map;
+- a directory-bound node: any node whose `source:` directory contains one.
+
+In the UI those nodes show a ▲ badge (click it), the context menu offers *Read
+waymark*, and `W` opens the hovered node's waymark, else the current scope's,
+else the whole map's. Over HTTP, `GET /graph` carries the root's path in its
+top-level `waymark` field and each node's in `nodes.<id>.waymark`;
+`GET /waymark` returns the root's `{path, content}`, and `GET /waymark?node=<id>`
+a node's. `cairn check` reports how many it found.
+
+A waymark that cairn can't attach (in a directory no node binds to, or in a repo
+with no map at all) is just as valid. cairn won't display it, but you read it as
+a plain file.

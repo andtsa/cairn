@@ -137,7 +137,8 @@ in the browser, press `?` to open the documentation panel
 
 [`skills/cairn-build`](skills/cairn-build) is a Claude Code skill that teaches
 an agent to author `cairn.yaml` maps (the schema, how to group and nest, and how to
-validate) and to write and refresh `waymark.md` summaries. it lives here so it changes together with the format it documents.
+validate) and to write, refresh and read `waymark.md` summaries, which also work
+without a map. it lives here so it changes together with the format it documents.
 
 maps get written from other repositories, so install the skill as a personal skill (a
 project skill would only load inside this repo). symlink it rather than copying, so a

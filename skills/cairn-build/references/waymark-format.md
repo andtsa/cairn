@@ -9,7 +9,12 @@ open the map.
 ## Where it lives
 
 `waymark.md`, exactly that name, at the **root of the codebase it describes**.
-cairn finds waymarks automatically:
+
+A waymark stands on its own: it needs no map, and it is plain markdown that
+anyone can read straight from the file. A repo with a waymark and no
+`cairn.yaml` is perfectly normal.
+
+When a cairn map *is* served, cairn finds waymarks automatically:
 
 - **The map's own root**: `waymark.md` in the directory `project.root` resolves
   to (normally next to `cairn.yaml`). Opened from the HUD's *waymark* button.
@@ -18,6 +23,9 @@ cairn finds waymarks automatically:
 - **A directory binding**: any node with `source: some/dir/` whose directory
   contains a `waymark.md`. Putting a waymark in a directory is how you declare it
   a codebase in its own right, even without a separate map.
+
+A waymark anywhere else is still valid; cairn just has no node to attach it to,
+so it is read as a plain file.
 
 A node with a waymark shows a ▲ badge. Click the badge, use right-click → *Read
 waymark*, or hover and press `W` to read it. `cairn check` reports how many
