@@ -1,5 +1,5 @@
 ---
-name: cairn-config
+name: cairn-build
 description: >-
   Generate an initial cairn.yaml intent config that maps a codebase into a
   semantic, zoomable node/edge graph (systems → modules → files, with annotated
