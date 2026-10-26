@@ -1,4 +1,4 @@
-# vgraphtree — Design Decisions Log
+# cairn — Design Decisions Log
 
 Decisions made during implementation that were not covered (or were ambiguous) in plan.md.
 
@@ -18,9 +18,9 @@ Made `lsp` optional in the config struct so a minimal YAML without an `lsp:` blo
 
 `rename` is atomic on POSIX systems when source and destination are on the same filesystem (which they always are here — both are in the project directory). This matches the spec. The `.tmp` file is written fully before the rename, so a crash mid-write leaves the old file intact.
 
-### D4: Config path passed as CLI arg, defaulting to `vgraphtree.yaml`
+### D4: Config path passed as CLI arg, defaulting to `cairn.yaml`
 
-The server accepts an optional first argument for the config path. This makes it easy to run from any working directory and allows multiple configs (e.g. for different repos). Default is `"vgraphtree.yaml"` relative to CWD, which matches the project root convention.
+The server accepts an optional first argument for the config path. This makes it easy to run from any working directory and allows multiple configs (e.g. for different repos). Default is `"cairn.yaml"` relative to CWD, which matches the project root convention.
 
 ### D5: Delete node uses iterative BFS instead of recursive `remove_subtree`
 
@@ -93,7 +93,7 @@ Snap levels (when each LOD unlocks) should not be absolute `k` values — those 
 snapLevels[n] = fitScale × LOD_MULTIPLIERS[n]
 ```
 
-`LOD_MULTIPLIERS = [1.2, 1.8, 3.2, 6.0]`. This means "zoom in 20% from the initial fit view to see level-1 children." The transition feels the same on any screen or graph size, because it's relative to where you start. The `snap_levels` field in `vgraphtree.yaml` is currently unused by the frontend (Q4 still open).
+`LOD_MULTIPLIERS = [1.2, 1.8, 3.2, 6.0]`. This means "zoom in 20% from the initial fit view to see level-1 children." The transition feels the same on any screen or graph size, because it's relative to where you start. The `snap_levels` field in `cairn.yaml` is currently unused by the frontend (Q4 still open).
 
 ### D19: Graph centering uses `svg.clientWidth` not `window.innerWidth`
 
@@ -115,9 +115,9 @@ each fork went the way it did.
 
 The single prototype file conflates human intent, app-written layout state, and
 machine-derived data — which is exactly why it churns and can't be hand-authored
-cleanly. Split into `vgraphtree.yaml` (human intent, committed, rarely written),
-`vgraphtree.state.yaml` (pins + dismissed, app-owned, committed), and
-`.vgraphtree/lsp-cache.yaml` (derived snapshot, gitignored, warm-start only).
+cleanly. Split into `cairn.yaml` (human intent, committed, rarely written),
+`cairn.state.yaml` (pins + dismissed, app-owned, committed), and
+`.cairn/lsp-cache.yaml` (derived snapshot, gitignored, warm-start only).
 The usual "need identity to reattach layers" objection dissolves because state
 keys by human-owned node id; the hard identity case (LSP leaves) is never
 persisted in a committed file.
@@ -203,7 +203,7 @@ why each fork went the way it did.
 
 ### D30: `include:` mounts — composition is a backend load-time transform
 
-A node's `include: <inner vgraphtree.yaml>` delegates its subtree to that
+A node's `include: <inner cairn.yaml>` delegates its subtree to that
 subproject's independently-maintained map ("submodules for maps"). `compose`
 recursively splices includes into one graph so the frontend renders a single
 composed graph (mounts are just containers) — the whole feature is one loader
@@ -247,6 +247,6 @@ per-file editing, fine-grained cross-project edges, auto-discovery.
 
 - **Q3**: ~~No force simulation.~~ Resolved: D17.
 
-- **Q4**: The `snap_levels` from `vgraphtree.yaml` are not returned by `GET /graph`. The frontend ignores the YAML value and derives snap levels from the fit scale (D18). The API should return project config, or snap levels should be exposed via a `GET /config` endpoint, so the YAML multipliers can override the defaults. *Goal-state (config-architecture.md §3.5, §12): `snap_levels` is dropped from the schema; may return as optional override multipliers over the fit-scale-derived thresholds.*
+- **Q4**: The `snap_levels` from `cairn.yaml` are not returned by `GET /graph`. The frontend ignores the YAML value and derives snap levels from the fit scale (D18). The API should return project config, or snap levels should be exposed via a `GET /config` endpoint, so the YAML multipliers can override the defaults. *Goal-state (config-architecture.md §3.5, §12): `snap_levels` is dropped from the schema; may return as optional override multipliers over the fit-scale-derived thresholds.*
 
 - **Q5**: `centerGraph` re-runs on every window resize, resetting the zoom. This is fine for now but will be jarring if the user has panned deep into the graph. A future improvement: only re-center if the user hasn't zoomed past LOD 0, or track "has user interacted" and skip re-centering in that case.

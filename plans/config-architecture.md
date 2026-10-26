@@ -1,4 +1,4 @@
-# vgraphtree — Config Architecture (goal-state)
+# cairn — Config Architecture (goal-state)
 
 > The target design for the configuration format. Supersedes the schema described
 > in `plan.md` sections 4–6 (which document the Phase-1 prototype). This document
@@ -36,9 +36,9 @@ change rates, and git dispositions. They split into three files:
 
 | File | Contains | Written by | Change rate | Git |
 |------|----------|------------|-------------|-----|
-| `vgraphtree.yaml` | **human intent**: concepts, groupings, labels, annotations, bindings, zones | person (+ app on explicit commit) | rarely | committed |
-| `vgraphtree.state.yaml` | **app state**: pins, dismissed suggestions | app | often | committed (shared layout) |
-| `.vgraphtree/lsp-cache.yaml` | **derived snapshot**: code nodes/edges for warm start | machine only | every scan | **gitignored** |
+| `cairn.yaml` | **human intent**: concepts, groupings, labels, annotations, bindings, zones | person (+ app on explicit commit) | rarely | committed |
+| `cairn.state.yaml` | **app state**: pins, dismissed suggestions | app | often | committed (shared layout) |
+| `.cairn/lsp-cache.yaml` | **derived snapshot**: code nodes/edges for warm start | machine only | every scan | **gitignored** |
 
 Why this split:
 
@@ -53,7 +53,7 @@ Why this split:
 
 ---
 
-## 3. The intent file — `vgraphtree.yaml`
+## 3. The intent file — `cairn.yaml`
 
 ### 3.1 Shape
 
@@ -79,26 +79,26 @@ nodes:
 
   backend:
     label: Rust backend
-    source: vgraphtree-server/
+    source: cairn-server/
     zone: top-left
     children:
       route_handlers:
         label: Route handlers
-        source: vgraphtree-server/src/routes/
+        source: cairn-server/src/routes/
         derive_children: true        # opt-in; inert until LSP exists (§8)
       config_parser:
         label: Config parser
-        source: vgraphtree-server/src/config.rs
+        source: cairn-server/src/config.rs
         children:
           parse_fn:
-            source: vgraphtree-server/src/config.rs::parse_yaml
+            source: cairn-server/src/config.rs::parse_yaml
             # no label → follows the LSP symbol name "parse_yaml"
-      graph_types:  { label: Graph types,  source: vgraphtree-server/src/graph.rs }
-      server_entry: { label: Server entry, source: vgraphtree-server/src/main.rs }
+      graph_types:  { label: Graph types,  source: cairn-server/src/graph.rs }
+      server_entry: { label: Server entry, source: cairn-server/src/main.rs }
 
   yaml_store:
     label: YAML store
-    source: vgraphtree.yaml
+    source: cairn.yaml
     zone: bottom
 
 edges:
@@ -171,7 +171,7 @@ Removed: **`snap_levels`** — superseded by fit-scale-derived thresholds
 
 ---
 
-## 4. The state file — `vgraphtree.state.yaml`
+## 4. The state file — `cairn.state.yaml`
 
 App-owned and **gitignored** (personal layout, per machine). Small.
 
@@ -181,7 +181,7 @@ pins:
   frontend: { x: 640, y: 300 }     # a node this user moved off its shared default
 
 dismissed:                         # ghosts the user said "stop suggesting"
-  - vgraphtree-server/src/main.rs::main
+  - cairn-server/src/main.rs::main
 ```
 
 ### Position resolution (4 tiers)
@@ -219,7 +219,7 @@ force-directed, and survives reload. (The PATCH also uses a double-option so
 Provenance falls out of the file split at two levels, so no explicit flag is
 needed:
 
-- **Node-level provenance = which file.** A node in `vgraphtree.yaml` is
+- **Node-level provenance = which file.** A node in `cairn.yaml` is
   human-blessed, full stop. A node in the cache is machine-derived. Location
   *is* the flag.
 - **Field-level provenance = key presence.** An accepted node can be a *sparse
@@ -246,7 +246,7 @@ on rescan:
 3. New code artifacts below an authored seam surface as **ghost** suggestions
    (minus anything in `dismissed`, minus anything already promoted to intent).
 
-`vgraphtree check` is just a CLI entrypoint over this same server logic.
+`cairn check` is just a CLI entrypoint over this same server logic.
 
 ---
 
@@ -300,7 +300,7 @@ concern, not a config field.
 
 ---
 
-## 9. The cache file — `.vgraphtree/lsp-cache.yaml`
+## 9. The cache file — `.cairn/lsp-cache.yaml`
 
 Machine-generated, gitignored, warm-start only. Flat for fast load.
 
@@ -313,11 +313,11 @@ nodes:                             # flat; keyed by derived id; parent = authore
   "routes/save.rs":
     kind: file
     parent: route_handlers
-    source: vgraphtree-server/src/routes/save.rs
+    source: cairn-server/src/routes/save.rs
   "routes/save.rs::save_handler":
     kind: symbol
     parent: "routes/save.rs"
-    source: vgraphtree-server/src/routes/save.rs::save_handler
+    source: cairn-server/src/routes/save.rs::save_handler
 edges:
   - { from: "routes/save.rs::save_handler", to: "graph.rs::NodeGraph", kind: reference }
 ```
@@ -399,7 +399,7 @@ enum EdgeKind { Import, Call, Reference, Semantic, Custom(String) }
 ## 11. Nested configs (composition)
 
 Large codebases can't live in one hand-maintained map. A node in an outer config
-carries **`include: <path/to/vgraphtree.yaml>`** and delegates its whole subtree
+carries **`include: <path/to/cairn.yaml>`** and delegates its whole subtree
 to that subproject's own, independently-maintained map — "submodules for maps."
 Zooming into the mount node reveals the subproject's map, continuing the seamless
 descent. Ownership is clean: the outer owns mount nodes + cross-subproject edges;
@@ -407,11 +407,11 @@ each inner config owns everything below its mount. This extends the §7 idea (a
 node's subtree can come from inline / LSP / **another intent file**).
 
 ```yaml
-# outer vgraphtree.yaml
+# outer cairn.yaml
 nodes:
   auth:
     label: Auth service
-    include: services/auth/vgraphtree.yaml   # delegate subtree to this map
+    include: services/auth/cairn.yaml   # delegate subtree to this map
   billing: { label: Billing }
 edges:
   - { from: auth, to: billing, annotation: events }   # cross-subproject edge
@@ -462,7 +462,7 @@ v1 is **eager** load, **read-only** nested, mount-level cross edges. Deferred: l
 on-demand loading of includes (the real scale win — don't materialize thousands of
 nodes at once), per-file edit/save routing (edit nested content in the composed
 view), fine-grained cross-project edges (`auth/X → billing/Y`), and auto-discovery
-(mount any `source:` dir that contains a `vgraphtree.yaml`).
+(mount any `source:` dir that contains a `cairn.yaml`).
 
 ---
 
@@ -479,7 +479,7 @@ until LSP lands:
 
 Adopting the schema now means: the prototype's file becomes today's map minus
 `level`, `origin`, `pin`, and edge `levels`, with pins relocated to
-`vgraphtree.state.yaml`. Everything else (derive/cache/staleness) is additive
+`cairn.state.yaml`. Everything else (derive/cache/staleness) is additive
 and arrives with the LSP integration.
 
 ---

@@ -1,4 +1,4 @@
-# A full, real-world vgraphtree intent file — the map of vgraphtree's own source.
+# A full, real-world cairn intent file — the map of cairn's own source.
 # Use this as a *style baseline*: note the granularity (systems → modules, a few
 # key files, stopping there), the concrete edge annotations, and the top-level
 # zone layout. Do not copy its contents — model the *shape* on it.
@@ -35,23 +35,23 @@ nodes:
       - composes `include:`d maps into one graph
       - serves the graph and file contents to the frontend
       - persists edits back to the intent and state files
-    source: vgraphtree-server/
+    source: cairn-server/
     zone: left
     children:
       route_handlers:
         label: Route handlers
-        source: vgraphtree-server/src/routes/
+        source: cairn-server/src/routes/
         children:
-          save:  { label: Save,  source: vgraphtree-server/src/routes/save.rs }
-          graph: { label: Graph, source: vgraphtree-server/src/routes/graph.rs }
-          node:  { label: Node,  source: vgraphtree-server/src/routes/node.rs }
-      config_parser: { label: Config parser, source: vgraphtree-server/src/config.rs }
-      graph_types:   { label: Graph types,   source: vgraphtree-server/src/graph.rs }
-      server_entry:  { label: Server entry,  source: vgraphtree-server/src/main.rs }
+          save:  { label: Save,  source: cairn-server/src/routes/save.rs }
+          graph: { label: Graph, source: cairn-server/src/routes/graph.rs }
+          node:  { label: Node,  source: cairn-server/src/routes/node.rs }
+      config_parser: { label: Config parser, source: cairn-server/src/config.rs }
+      graph_types:   { label: Graph types,   source: cairn-server/src/graph.rs }
+      server_entry:  { label: Server entry,  source: cairn-server/src/main.rs }
 
   yaml_store:
     label: YAML store
-    source: vgraphtree.yaml
+    source: cairn.yaml
     zone: bottom
 
 edges:

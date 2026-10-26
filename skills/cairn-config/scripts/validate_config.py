@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Validate a vgraphtree intent file (vgraphtree.yaml).
+"""Validate a cairn intent file (cairn.yaml).
 
 Catches the authoring mistakes that are tedious to spot by eye: dangling edge
 endpoints, duplicate node ids, missing/typo'd source paths, bad zones/pins.
 
 Usage:
-    python3 validate_config.py path/to/vgraphtree.yaml
+    python3 validate_config.py path/to/cairn.yaml
 
 Exit code 0 if there are no errors (warnings are allowed), 1 otherwise.
 """
@@ -71,8 +71,8 @@ def walk_nodes(nodes, parent, depth, ids, collected):
                 err(f"node '{nid}' pin must be {{x: <number>, y: <number>}}, got {pin!r}")
 
         # A mount node (`include:`) delegates its subtree to another file; it must
-        # not also declare inline children (vgraphtree ignores them). This single-
-        # file validator does not follow the include — run `vgraphtree check` for
+        # not also declare inline children (cairn ignores them). This single-
+        # file validator does not follow the include — run `cairn check` for
         # full composed-graph validation.
         if node.get("include") and node.get("children"):
             err(f"node '{nid}' has both `include` and `children` — children are ignored; remove them")
@@ -90,7 +90,7 @@ def source_path(source, root):
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("Usage: python3 validate_config.py path/to/vgraphtree.yaml")
+        sys.exit("Usage: python3 validate_config.py path/to/cairn.yaml")
     path = sys.argv[1]
     if not os.path.exists(path):
         sys.exit(f"File not found: {path}")

@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "vgraphtree-server"
+    "cairn-server"
 ]
 resolver = "2"

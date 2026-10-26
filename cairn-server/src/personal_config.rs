@@ -1,14 +1,14 @@
 //! Personal ("dotfile") configuration — user preferences like default layout
 //! engine, layout/physics parameters, and colours. Distinct from the project
-//! *intent* (`vgraphtree.yaml`) and *state* (`vgraphtree.state.yaml`) files.
+//! *intent* (`cairn.yaml`) and *state* (`cairn.state.yaml`) files.
 //!
 //! The backend stays deliberately dumb: it reads and writes an arbitrary
 //! key/value map and does NOT know the schema. Validation lives in the frontend
 //! (the config panel), so adding a new setting never requires a backend change.
 //!
 //! SCOPE: currently per-project — the dotfile sits next to the intent file as
-//! `.vgraphtree.config.yaml`. This is intentionally the *last* source in
-//! `config_sources()`; a future global `~/.config/vgraphtree/config.yaml` will be
+//! `.cairn.config.yaml`. This is intentionally the *last* source in
+//! `config_sources()`; a future global `~/.config/cairn/config.yaml` will be
 //! prepended as the base layer with this per-project file layered on top as an
 //! override. Callers should go through `config_sources()` / `load()` so that
 //! change stays contained here.
@@ -16,12 +16,12 @@
 use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 
-/// The personal config file for a project: `<intent dir>/.vgraphtree.config.yaml`.
+/// The personal config file for a project: `<intent dir>/.cairn.config.yaml`.
 pub fn personal_config_path(config_path: &str) -> PathBuf {
     Path::new(config_path)
         .parent()
         .unwrap_or_else(|| Path::new("."))
-        .join(".vgraphtree.config.yaml")
+        .join(".cairn.config.yaml")
 }
 
 /// Ordered list of config sources, base-first. Later sources override earlier

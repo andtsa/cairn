@@ -1,8 +1,8 @@
-# vgraphtree intent-file schema
+# cairn intent-file schema
 
-The complete reference for `vgraphtree.yaml`, the human-authored intent file.
+The complete reference for `cairn.yaml`, the human-authored intent file.
 This is the only file this skill writes. Two sibling files exist in a live
-project but you never author them: `vgraphtree.state.yaml` (app-owned, personal
+project but you never author them: `cairn.state.yaml` (app-owned, personal
 positions — gitignored) and an LSP cache (machine-generated). Everything here
 concerns the intent file only.
 
@@ -27,7 +27,7 @@ edges: [ ... ]       # flat list of relationships
 Nodes are a **nested map keyed by a human-chosen id**. The id is the map key
 (e.g. `backend:`), must be unique across the whole file — not just among its
 siblings — and is what edges reference. Children nest under a `children:` key.
-A repeated id is an error in `vgraphtree check`; at load time the first
+A repeated id is an error in `cairn check`; at load time the first
 definition wins and later ones are dropped. (Ids in an `include:`d file are
 namespaced under their mount, so they only need to be unique within that file.)
 
@@ -43,7 +43,7 @@ namespaced under their mount, so they only need to be unique within that file.)
 | `zone` | no | Soft layout anchor — see Zones below. Used mainly on top-level nodes to spread the map. |
 | `pin` | no | Exact committed position `{ x, y }` (pixels). Hand-authored default; overridden by a personal state-file pin. Prefer `zone` for generated configs; use `pin` only when an exact position matters. |
 | `derive_children` | no | Opt-in flag: later have LSP populate children below this node. Currently inert (no effect until the LSP layer exists). Default `false`. |
-| `include` | no | Mount another `vgraphtree.yaml` as this node's subtree (nested graphs) — see Includes below. Mutually exclusive with `children` (children are ignored when `include` is set). |
+| `include` | no | Mount another `cairn.yaml` as this node's subtree (nested graphs) — see Includes below. Mutually exclusive with `children` (children are ignored when `include` is set). |
 | `children` | no | Nested map of child nodes, same shape, recursively. |
 
 **Never author these** — they are derived or machine-owned: `level` (comes from
@@ -213,7 +213,7 @@ should still read well on its own.
 
 ### Includes (nested graphs)
 
-A node with `include: <path>` **mounts another `vgraphtree.yaml` as its subtree**,
+A node with `include: <path>` **mounts another `cairn.yaml` as its subtree**,
 so a big codebase can be split into per-subproject maps that a top-level file
 stitches together (instead of one enormous file).
 
@@ -222,7 +222,7 @@ nodes:
   auth:
     label: Auth service
     zone: left
-    include: services/auth/vgraphtree.yaml   # relative to THIS file's directory
+    include: services/auth/cairn.yaml   # relative to THIS file's directory
 ```
 
 Semantics:
@@ -235,7 +235,7 @@ Semantics:
   offset. Inner content is **read-only** from the outer file — it's never written
   back into the outer config, so each map stays independently editable.
 - **`include` and `children` are mutually exclusive.** If a node has both, the
-  inline `children` are ignored (and `vgraphtree check` reports it).
+  inline `children` are ignored (and `cairn check` reports it).
 - `include` paths must not form a **cycle** (A includes B includes A) — that's a
   hard error.
 - Inner ids are namespaced, so they only need to be unique within the inner
@@ -244,7 +244,7 @@ Semantics:
   other top-level system.
 
 You can author just the top-level composition file and leave the inner
-`vgraphtree.yaml` files for later (or for each subproject to own).
+`cairn.yaml` files for later (or for each subproject to own).
 
 ## Edges
 
@@ -313,7 +313,7 @@ nodes:
 
   store:
     label: YAML store
-    source: vgraphtree.yaml
+    source: cairn.yaml
     zone: bottom
 
 edges:
@@ -327,14 +327,14 @@ edges:
 
 ## CLI
 
-vgraphtree is a single binary with two subcommands:
+cairn is a single binary with two subcommands:
 
 | Command | What it does |
 |---------|--------------|
-| `vgraphtree serve --path <file> [--port <n>] [--host <addr>]` | Serve the interactive map on a local web server (default `127.0.0.1:7777`). A browser refresh re-reads the map from disk, so edits and new includes show up without a restart (unless the UI has unsaved edits). |
-| `vgraphtree check --path <file>` | Validate the config: that it parses, every `include:` resolves without a cycle, and every `source:` link exists on disk. Broken links → warnings; parse/read failures, include cycles, `include`+`children`, duplicate node ids, and parent cycles → errors (non-zero exit). Validates the whole *composed* graph, following includes. |
+| `cairn serve --path <file> [--port <n>] [--host <addr>]` | Serve the interactive map on a local web server (default `127.0.0.1:7777`). A browser refresh re-reads the map from disk, so edits and new includes show up without a restart (unless the UI has unsaved edits). |
+| `cairn check --path <file>` | Validate the config: that it parses, every `include:` resolves without a cycle, and every `source:` link exists on disk. Broken links → warnings; parse/read failures, include cycles, `include`+`children`, duplicate node ids, and parent cycles → errors (non-zero exit). Validates the whole *composed* graph, following includes. |
 
-`--path` defaults to `vgraphtree.yaml`. Use `check` as the authoritative validator
+`--path` defaults to `cairn.yaml`. Use `check` as the authoritative validator
 after authoring a config.
 
 The server has no authentication — anyone who can reach it can edit the map. It

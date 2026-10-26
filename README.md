@@ -1,7 +1,7 @@
 
-# lookout!
+# cairn
 
-initially called "visual graph-tree" (still accepting name suggestions)
+previously known as "visual graph-tree" and "lookout"
 
 ## what is this
 
@@ -21,13 +21,13 @@ nodes:
 
   yaml_store:
     label: Intent map
-    source: vgraphtree.yaml
+    source: cairn.yaml
     description: The file that contains the actual graph, with all the nodes, labels, descriptions, and edges between them.
     zone: bottom
 
   backend:
     label: Rust backend
-    source: vgraphtree-server/
+    source: cairn-server/
     description: An axum web server. it parses the intent map, serves the composed graph and file contents, and persists edits.
     zone: top-left
 ```
@@ -60,29 +60,29 @@ and a graph in each sub-node, and so on:
 ```yaml
   backend:
     label: Rust backend
-    source: vgraphtree-server/
+    source: cairn-server/
     description: An axum web server. it parses the intent map, serves the composed graph and file contents, and persists edits.
     zone: top-left
     children:
-      config_parser:   { label: Config parser,   source: vgraphtree-server/src/config.rs,          description: "Parses / serializes the intent YAML and composes nested includes." }
-      graph_types:     { label: Graph types,     source: vgraphtree-server/src/graph.rs,           description: "Runtime Node / Edge / NodeGraph types (symbol, description, pins, kinds)." }
-      kinds:           { label: Kinds,           source: vgraphtree-server/src/kinds.rs,           description: "NodeKind, EdgeKind, and SymbolKind enums." }
-      state_file:      { label: State file,      source: vgraphtree-server/src/state.rs,           description: "Loads / saves personal pins and dismissed items (nullable-pin tombstones)." }
-      personal_config: { label: Personal config, source: vgraphtree-server/src/personal_config.rs, description: "Reads / writes the per-project .vgraphtree.config.yaml dotfile." }
-      check_cli:       { label: Check CLI,       source: vgraphtree-server/src/check.rs,           description: "The `vgraphtree check` subcommand — validates a map without serving." }
-      server_entry:    { label: Server entry,    source: vgraphtree-server/src/main.rs,            description: "CLI, routing, state-file application, and static asset serving." }
+      config_parser:   { label: Config parser,   source: cairn-server/src/config.rs,          description: "Parses / serializes the intent YAML and composes nested includes." }
+      graph_types:     { label: Graph types,     source: cairn-server/src/graph.rs,           description: "Runtime Node / Edge / NodeGraph types (symbol, description, pins, kinds)." }
+      kinds:           { label: Kinds,           source: cairn-server/src/kinds.rs,           description: "NodeKind, EdgeKind, and SymbolKind enums." }
+      state_file:      { label: State file,      source: cairn-server/src/state.rs,           description: "Loads / saves personal pins and dismissed items (nullable-pin tombstones)." }
+      personal_config: { label: Personal config, source: cairn-server/src/personal_config.rs, description: "Reads / writes the per-project .cairn.config.yaml dotfile." }
+      check_cli:       { label: Check CLI,       source: cairn-server/src/check.rs,           description: "The `cairn check` subcommand — validates a map without serving." }
+      server_entry:    { label: Server entry,    source: cairn-server/src/main.rs,            description: "CLI, routing, state-file application, and static asset serving." }
       route_handlers:
         label: Route handlers
-        source: vgraphtree-server/src/routes/
+        source: cairn-server/src/routes/
         description: HTTP endpoints over the in-memory graph.
         children:
-          save:         { label: Save,   source: vgraphtree-server/src/routes/save.rs,   description: "Writes the intent + state files (only deviations go to state)." }
-          graph:        { label: Graph,  source: vgraphtree-server/src/routes/graph.rs,  description: "Serves the composed NodeGraph as JSON." }
-          edge:         { label: Edge,   source: vgraphtree-server/src/routes/edge.rs,   description: "Create / patch edges." }
-          node:         { label: Node,   source: vgraphtree-server/src/routes/node.rs,   description: "Create / patch / delete nodes (double-option pin patch)." }
-          file:         { label: File,   source: vgraphtree-server/src/routes/file.rs,   description: "Reads file contents (line range) and directory listings." }
-          reload:       { label: Reload, source: vgraphtree-server/src/routes/reload.rs, description: "Re-parses the intent + state files from disk." }
-          config_route: { label: Config, source: vgraphtree-server/src/routes/config.rs, description: "GET / PUT the personal config dotfile." }
+          save:         { label: Save,   source: cairn-server/src/routes/save.rs,   description: "Writes the intent + state files (only deviations go to state)." }
+          graph:        { label: Graph,  source: cairn-server/src/routes/graph.rs,  description: "Serves the composed NodeGraph as JSON." }
+          edge:         { label: Edge,   source: cairn-server/src/routes/edge.rs,   description: "Create / patch edges." }
+          node:         { label: Node,   source: cairn-server/src/routes/node.rs,   description: "Create / patch / delete nodes (double-option pin patch)." }
+          file:         { label: File,   source: cairn-server/src/routes/file.rs,   description: "Reads file contents (line range) and directory listings." }
+          reload:       { label: Reload, source: cairn-server/src/routes/reload.rs, description: "Re-parses the intent + state files from disk." }
+          config_route: { label: Config, source: cairn-server/src/routes/config.rs, description: "GET / PUT the personal config dotfile." }
 ```
 
 ### descriptions
@@ -107,12 +107,12 @@ the lines into one:
 
 to use this, you need 2 things:
 
-1. the `vgraphtree` binary, found under `target/debug/vgraphtree` after `cargo build`
-2. a `vgraphtree.yaml` file, which you should make yourself! you can see the one for [this codebase](vgraphtree.yaml) for inspiration.
+1. the `cairn` binary, found under `target/debug/cairn` after `cargo build`
+2. a `cairn.yaml` file, which you should make yourself! you can see the one for [this codebase](cairn.yaml) for inspiration.
 
-from the directory containing the codebase (and likely the `vgraphtree.yaml`), run
+from the directory containing the codebase (and likely the `cairn.yaml`), run
 ```sh
-vgraphtree serve
+cairn serve
 ```
 
 and open [localhost](http://localhost:7777) as instructed
@@ -121,15 +121,15 @@ in the browser, press `?` to open the documentation panel
 
 ### writing maps with claude code
 
-[`skills/vgraphtree-config`](skills/vgraphtree-config) is a Claude Code skill that teaches
-an agent to author `vgraphtree.yaml` maps: the schema, how to group and nest, and how to
+[`skills/cairn-config`](skills/cairn-config) is a Claude Code skill that teaches
+an agent to author `cairn.yaml` maps: the schema, how to group and nest, and how to
 validate. it lives here so it changes together with the format it documents.
 
 maps get written from other repositories, so install the skill as a personal skill (a
 project skill would only load inside this repo). symlink it rather than copying, so a
 `git pull` keeps it current:
 ```sh
-ln -s "$PWD/skills/vgraphtree-config" ~/.claude/skills/vgraphtree-config
+ln -s "$PWD/skills/cairn-config" ~/.claude/skills/cairn-config
 ```
 run that from the root of this repository, once per machine.
 

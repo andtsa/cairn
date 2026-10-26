@@ -1,13 +1,13 @@
-# vgraphtree — Design Document
+# cairn — Design Document
 
 > A locally-hosted, zoomable mind map for understanding and navigating codebases.
 > This document captures all design decisions, architecture choices, data models, and the step-by-step prototype build plan.
 
 ---
 
-## 1. What Is vgraphtree?
+## 1. What Is cairn?
 
-vgraphtree is a local web application that lets you build and explore a multi-level visual map of a codebase. The map is made of **nodes** (logical components at different levels of abstraction) connected by **annotated edges** (arrows with human-authored labels).
+cairn is a local web application that lets you build and explore a multi-level visual map of a codebase. The map is made of **nodes** (logical components at different levels of abstraction) connected by **annotated edges** (arrows with human-authored labels).
 
 The core interaction is **zoom**: as you zoom in, nodes reveal their constituent sub-components. Zoom further and you eventually reach real symbols — functions, types, methods — drawn from the codebase via LSP. At the deepest level, clicking a node opens a read-only code panel showing the actual source lines.
 
@@ -55,7 +55,7 @@ Dragging a node without Shift is temporary — the node returns to simulation on
 > goal-state model keeps these mechanisms but reinterprets them: `depth_ceiling`
 > becomes the auto-derivation cap *below* the seam (D27), the authored/derived
 > boundary is per-branch and implicit, `origin` is dropped in favour of
-> file-location provenance (D22), and `vgraphtree check` becomes a core
+> file-location provenance (D22), and `cairn check` becomes a core
 > server-side staleness loop rather than a future CLI.
 
 Four mechanisms prevent the config file from becoming unmanageable:
@@ -63,7 +63,7 @@ Four mechanisms prevent the config file from becoming unmanageable:
 1. **`depth_ceiling`**: Only nodes up to a configured depth level are written to config. Deeper nodes (individual functions, lines) are always derived from LSP at runtime. Configurable per project.
 2. **LSP nodes are ephemeral until pinned**: Ghost nodes never enter config until the user explicitly accepts them. Accepted suggestions write a minimal entry (id, source binding, optional label override).
 3. **Positions only stored when pinned**: Unpinned nodes get their position from the force simulation every session. No coordinates in config = no coordinates to go stale.
-4. **Future: `vgraphtree check` CLI command**: Warns about dead `source:` paths after file renames. Keeps config from accumulating stale entries.
+4. **Future: `cairn check` CLI command**: Warns about dead `source:` paths after file renames. Keeps config from accumulating stale entries.
 
 ### 2.6 YAML over TOML
 
@@ -129,7 +129,7 @@ The app runs as a local HTTP server (default port `7777`). The browser opens `in
 > `derive_children`. The block below is the prototype schema.
 
 ```yaml
-# vgraphtree.yaml — only manually authored / confirmed content
+# cairn.yaml — only manually authored / confirmed content
 
 project:
   root: "."
@@ -294,7 +294,7 @@ All endpoints served by the Axum backend. The frontend is a single `index.html` 
 
 **Key API rules:**
 - `PATCH` endpoints accept partial updates (only fields present in the body are changed).
-- `/save` does an atomic write: serialize to string → write to `vgraphtree.yaml.tmp` → `rename()` to `vgraphtree.yaml`.
+- `/save` does an atomic write: serialize to string → write to `cairn.yaml.tmp` → `rename()` to `cairn.yaml`.
 - `/file` is read-only and stateless. File content is never cached server-side.
 - The backend never pushes unsolicited updates to the frontend in Phase 1 (no WebSocket needed until LSP).
 
@@ -390,7 +390,7 @@ function deriveEdgePath(edge, nodes) {
 ### Startup
 1. Browser loads `index.html`
 2. JS calls `GET /graph`
-3. Rust reads `vgraphtree.yaml` → parses into `NodeGraph` → serialises to JSON
+3. Rust reads `cairn.yaml` → parses into `NodeGraph` → serialises to JSON
 4. D3 renders nodes at their pinned positions (or random positions for free nodes)
 5. Force simulation starts; free nodes settle
 
@@ -413,8 +413,8 @@ function deriveEdgePath(edge, nodes) {
 ### Save (Ctrl+S)
 1. Browser sends `POST /save`
 2. Rust serialises `NodeGraph` → YAML string
-3. Writes to `vgraphtree.yaml.tmp`
-4. `rename("vgraphtree.yaml.tmp", "vgraphtree.yaml")` (atomic)
+3. Writes to `cairn.yaml.tmp`
+4. `rename("cairn.yaml.tmp", "cairn.yaml")` (atomic)
 5. `dirty = false`, `200 OK` → frontend clears dirty indicator
 
 ### Open code panel (click leaf node)
@@ -490,8 +490,8 @@ No LSP, no force simulation initially, no ghost nodes, no lasso grouping.
 **Goal:** HTTP server running, browser can open the app.
 
 ```
-cargo new vgraphtree-server
-cd vgraphtree-server
+cargo new cairn-server
+cd cairn-server
 # Add to Cargo.toml:
 # axum = "0.7"
 # tokio = { version = "1", features = ["full"] }
@@ -516,14 +516,14 @@ Deliverable: `curl localhost:7777/ping` returns `ok`. Browser opens `localhost:7
 
 ### Step 2 — YAML model + graph API
 
-**Goal:** Backend can parse a hand-written `vgraphtree.yaml` and serve it as JSON.
+**Goal:** Backend can parse a hand-written `cairn.yaml` and serve it as JSON.
 
 Tasks:
 - Define `Node`, `Edge`, `ProjectConfig`, `NodeGraph` structs (see Section 6)
-- `serde_yaml` deserialization from `vgraphtree.yaml` at startup
+- `serde_yaml` deserialization from `cairn.yaml` at startup
 - Flatten the nested YAML node tree into a `HashMap<String, Node>` with explicit `parent` and `children` fields populated during load
 - `GET /graph` returns `{ nodes: {...}, edges: [...] }` as JSON
-- Hand-write a `vgraphtree.yaml` with 3–5 nodes and 2–3 edges to test with
+- Hand-write a `cairn.yaml` with 3–5 nodes and 2–3 edges to test with
 
 Deliverable: `fetch("http://localhost:7777/graph")` in the browser console returns your nodes and edges. No frontend rendering yet.
 
@@ -580,7 +580,7 @@ Tasks:
 - **Edge annotation:** Click an edge → show a small floating input near the midpoint. On confirm: `PATCH /edge/:id { annotation }`. Annotation renders as small text along the edge.
 - **Pin on Shift+drag:** Implement drag handler. Without Shift: temporary position (returns on release). With Shift: send `PATCH /node/:id { pin: {x, y} }`, lock `fx/fy`.
 - **Implement remaining PATCH endpoints** in Rust: `/node/:id` and `/edge/:id`.
-- **Dirty flag:** After any PATCH response, set `dirty = true` client-side. Show indicator in page title: `● vgraphtree` vs `vgraphtree`.
+- **Dirty flag:** After any PATCH response, set `dirty = true` client-side. Show indicator in page title: `● cairn` vs `cairn`.
 - **Keyboard shortcut:** Ctrl+S calls `POST /save`, clears dirty flag on success.
 
 Deliverable: The full edit loop works end-to-end. You can rename nodes, annotate edges, pin positions. The dirty indicator shows/clears correctly.
@@ -596,8 +596,8 @@ Deliverable: The full edit loop works end-to-end. You can rename nodes, annotate
 Tasks:
 - Implement `POST /save` in Rust:
   1. Serialise `NodeGraph` back to YAML (respecting the original schema shape — nested nodes, not flat)
-  2. Write to `vgraphtree.yaml.tmp`
-  3. `std::fs::rename("vgraphtree.yaml.tmp", "vgraphtree.yaml")`
+  2. Write to `cairn.yaml.tmp`
+  3. `std::fs::rename("cairn.yaml.tmp", "cairn.yaml")`
   4. Set `dirty = false`, return `200 OK`
 - Implement `GET /file?path=...&start=N&end=M` in Rust:
   - Read the file, slice the requested lines, return as `{ lines: ["...", "..."] }`
@@ -624,7 +624,7 @@ Not part of the prototype. Listed here to avoid scope creep bleeding into Phase 
 - **Node creation in UI** — right-click canvas → "Add node"; currently nodes are added directly in YAML
 - **Edge routing** — curved/orthogonal paths that avoid other nodes; for Phase 1, straight lines are fine
 - **Undo/redo** — command history in frontend state
-- **`vgraphtree check` CLI** — validate that all `source:` paths in YAML still exist
+- **`cairn check` CLI** — validate that all `source:` paths in YAML still exist
 - **Markdown support** — parse `pulldown-cmark` AST to generate heading-hierarchy nodes
 
 ---
@@ -632,8 +632,8 @@ Not part of the prototype. Listed here to avoid scope creep bleeding into Phase 
 ## 14. File / Directory Structure
 
 ```
-vgraphtree/
-├── vgraphtree-server/           # Rust backend
+cairn/
+├── cairn-server/           # Rust backend
 │   ├── Cargo.toml
 │   └── src/
 │       ├── main.rs           # Axum server setup, route registration
@@ -654,14 +654,14 @@ vgraphtree/
 │   ├── api.js                # fetch() wrappers for all backend routes
 │   └── style.css
 │
-└── vgraphtree.yaml              # The map config — checked into repo
+└── cairn.yaml              # The map config — checked into repo
 ```
 
 ---
 
 ## 15. Key Constraints and Rules to Respect
 
-1. **Config is human-readable and hand-editable.** The YAML schema must stay clean enough that a developer can open `vgraphtree.yaml` and make changes without running the app.
+1. **Config is human-readable and hand-editable.** The YAML schema must stay clean enough that a developer can open `cairn.yaml` and make changes without running the app.
 
 2. **Backend is stateless between requests** (in Phase 1). The only state is the in-memory graph (rebuilt from YAML on startup) and the dirty flag. No sessions, no per-request state.
 
@@ -671,6 +671,6 @@ vgraphtree/
 
 5. **Positions in YAML only when pinned.** Free nodes have no position in config. This keeps the file short and prevents stale coordinates after layout changes.
 
-6. **Atomic file writes only.** Never write directly to `vgraphtree.yaml` in place. Always write to `.tmp` and rename. Prevents partial writes corrupting the file.
+6. **Atomic file writes only.** Never write directly to `cairn.yaml` in place. Always write to `.tmp` and rename. Prevents partial writes corrupting the file.
 
 7. **No bundler required.** The frontend is plain JS with D3 loaded from CDN (or a local copy). Opening `localhost:7777` should just work — no `npm install`, no build step for the frontend.

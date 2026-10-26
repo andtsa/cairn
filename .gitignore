@@ -2,9 +2,7 @@ draft/
 target/
 .DS_Store
 .claude/
-.vgraphtree/
-vgraphtree.state.yaml
+.cairn/
+cairn.state.yaml
 # personal config dotfile (per-project, not committed)
-.vgraphtree.config.yaml
-# the map-authoring skill is committed, even where a global ignore matches *vgraphtree*
-!skills/vgraphtree-config/
+.cairn.config.yaml

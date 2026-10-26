@@ -1,10 +1,10 @@
 [package]
-name = "vgraphtree-server"
+name = "cairn-server"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "vgraphtree"
+name = "cairn"
 path = "src/main.rs"
 
 [dependencies]

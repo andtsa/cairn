@@ -1,27 +1,27 @@
 ---
-name: vgraphtree-config
+name: cairn-config
 description: >-
-  Generate an initial vgraphtree.yaml intent config that maps a codebase into a
+  Generate an initial cairn.yaml intent config that maps a codebase into a
   semantic, zoomable node/edge graph (systems → modules → files, with annotated
   relationships). Use this whenever the user wants to bootstrap, author, scaffold,
-  or "seed" a vgraphtree map/config for a project — including phrasings like "map
-  this repo with vgraphtree", "create a vgraphtree.yaml", "set up vgraphtree here",
-  "document this codebase as a graph", or pointing vgraphtree at a new (possibly
+  or "seed" a cairn map/config for a project — including phrasings like "map
+  this repo with cairn", "create a cairn.yaml", "set up cairn here",
+  "document this codebase as a graph", or pointing cairn at a new (possibly
   large) project. Trigger it even when the user describes the outcome without
-  naming the file, as long as they want a vgraphtree config produced.
+  naming the file, as long as they want a cairn config produced.
 ---
 
-# vgraphtree config author
+# cairn config author
 
-## What vgraphtree is (context you need)
+## What cairn is (context you need)
 
-vgraphtree is a tool for building a **semantic, zoomable map of a codebase**:
+cairn is a tool for building a **semantic, zoomable map of a codebase**:
 **nodes** are logical components at different levels of abstraction, connected by
 **annotated edges** (arrows with human-written labels). Zooming in reveals a
 node's children. The map is not the file tree — it is the *conceptual* structure
 a developer holds in their head, bound to real source paths.
 
-The config you produce (`vgraphtree.yaml`, the "intent file") captures **human
+The config you produce (`cairn.yaml`, the "intent file") captures **human
 intent**: named groupings, labels, source bindings, and relationships. It is
 deliberately sparse — anything a machine can derive (nesting level, exact
 positions, per-file detail) is *not* authored by hand.
@@ -32,7 +32,7 @@ the UI.
 
 ## Guiding principle: a readable onboarding map, not a file tree
 
-The whole point of a vgraphtree map is to **help someone find their way through a
+The whole point of a cairn map is to **help someone find their way through a
 large, unfamiliar codebase** — to onboard them. It is emphatically **not** a 1:1
 depiction of the directory tree. Two facts shape everything you author:
 
@@ -70,7 +70,7 @@ is it just mirroring the file system?* Author the former.
 ## References
 
 - `references/schema.md` — complete field-by-field schema spec.
-- `references/example.yaml` — a full, real-world intent file (vgraphtree's own
+- `references/example.yaml` — a full, real-world intent file (cairn's own
   map). Read it to calibrate *granularity and style*: how coarse to go, how to
   phrase edge annotations, how to lay out the top level. Model the shape on it;
   don't copy its contents.
@@ -109,7 +109,7 @@ from the binding (a `source: file::Name` shorthand or an explicit `symbol:`
 field both count), so only set it to override. Give every authored node a
 `label`.
 
-A node can also **`include:` another `vgraphtree.yaml`** to mount it as a subtree
+A node can also **`include:` another `cairn.yaml`** to mount it as a subtree
 — the key to keeping *large / multi-package* repos maintainable (see step 4).
 
 ## Methodology
@@ -190,14 +190,14 @@ an exact location rather than relying on a text search finding the right match
 (`symbol`, `line`, `col`, `symbol_kind`) and how they interact.
 
 **For a large monorepo or multi-repo, prefer *composition* over one giant file.**
-A node can mount another self-contained `vgraphtree.yaml` as its subtree:
+A node can mount another self-contained `cairn.yaml` as its subtree:
 
 ```yaml
 nodes:
   auth:
     label: Auth service
     zone: left
-    include: services/auth/vgraphtree.yaml   # path relative to THIS file
+    include: services/auth/cairn.yaml   # path relative to THIS file
 ```
 
 The included file is a complete map with its own `project`, `nodes`, and `edges`,
@@ -289,10 +289,10 @@ exact `pin: { x, y }` when a specific pixel position genuinely matters.
 
 ### 7. Validate before finishing
 
-vgraphtree ships its own validator — use it first:
+cairn ships its own validator — use it first:
 
 ```bash
-vgraphtree check --path <path-to>/vgraphtree.yaml
+cairn check --path <path-to>/cairn.yaml
 ```
 
 `check` confirms the config parses, every `include:` resolves (no cycles), and
@@ -309,17 +309,17 @@ every `source:` link exists on disk. Broken links are warnings; these are errors
 It validates the whole *composed* graph (following `include` mounts). Fix
 everything it reports.
 
-If the `vgraphtree` binary isn't on `PATH`, fall back to the bundled Python
+If the `cairn` binary isn't on `PATH`, fall back to the bundled Python
 validator. It additionally catches **dangling edge endpoints** (which `check`
 doesn't yet) and invalid `zone` / `kind` / `pin` values:
 
 ```bash
-python3 <skill-dir>/scripts/validate_config.py <path-to>/vgraphtree.yaml
+python3 <skill-dir>/scripts/validate_config.py <path-to>/cairn.yaml
 ```
 
 (Needs **PyYAML** — try `python` if `python3` lacks it, or `pip install pyyaml`.
 It validates a *single* file and does **not** follow `include:` mounts, so run it
-on each file, or prefer `vgraphtree check` when available.)
+on each file, or prefer `cairn check` when available.)
 
 Either way, the most common error is a dangling edge (`from`/`to` referencing a
 node id that doesn't exist) — usually a typo or a renamed node. Fix all findings
@@ -327,7 +327,7 @@ before finishing.
 
 ## Output
 
-Write `vgraphtree.yaml` at the **project root** (the directory the map describes),
+Write `cairn.yaml` at the **project root** (the directory the map describes),
 using `root: .`. Keep it hand-authored and clean:
 
 - Nested `nodes:` map, flat `edges:` list.
@@ -335,13 +335,13 @@ using `root: .`. Keep it hand-authored and clean:
   real code (a pure conceptual grouping may omit `source`).
 - Use compact inline maps for leaf nodes (`{ label: ..., source: ... }`) and block
   style for nodes with children — it reads well and diffs cleanly.
-- Do **not** create the `vgraphtree.state.yaml` file — positions are personal and
+- Do **not** create the `cairn.state.yaml` file — positions are personal and
   the app generates it. Your zones live in the intent file.
 
 Then tell the user what you mapped (systems, rough node/edge counts, notable
 groupings you inferred) and invite them to refine labels, groupings, and layout in
 the UI — the generated file is a starting draft of *their* conceptual model, not a
-final answer. They can open it with `vgraphtree serve --path vgraphtree.yaml`
+final answer. They can open it with `cairn serve --path cairn.yaml`
 (defaults to `127.0.0.1:7777`). If a server for the map is already running, a
 browser refresh picks up edits to the file — including newly `include:`d maps —
 with no restart, unless the viewer has unsaved edits in the UI.

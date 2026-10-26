@@ -41,7 +41,7 @@ pub struct AppState {
 
 #[derive(Parser)]
 #[command(
-    name = "vgraphtree",
+    name = "cairn",
     version,
     about = "A zoomable semantic map of a codebase."
 )]
@@ -55,7 +55,7 @@ enum Command {
     /// Serve the interactive map on a local web server.
     Serve {
         /// Path to the intent config YAML.
-        #[arg(long, default_value = "vgraphtree.yaml")]
+        #[arg(long, default_value = "cairn.yaml")]
         path: String,
         /// Port to bind the server to.
         #[arg(long, default_value_t = 7777)]
@@ -69,14 +69,14 @@ enum Command {
     /// Validate the config: that it parses and every source link resolves.
     Check {
         /// Path to the intent config YAML.
-        #[arg(long, default_value = "vgraphtree.yaml")]
+        #[arg(long, default_value = "cairn.yaml")]
         path: String,
     },
 }
 
 // ─── Static frontend ────────────────────────────────────────────────────────
 // The `static/` frontend is located three ways, in priority order:
-//   1. $VGRAPHTREE_STATIC_DIR — explicit filesystem override (any build).
+//   1. $CAIRN_STATIC_DIR — explicit filesystem override (any build).
 //   2. debug build — rust-embed reads from disk at $CARGO_MANIFEST_DIR/../static,
 //      so `serve` works from any cwd and live edits show up on refresh.
 //   3. release build — files are embedded in the binary (no static/ dir needed).
@@ -93,7 +93,7 @@ async fn static_handler(uri: Uri) -> Response {
 
     // 1. Explicit override — serve from a filesystem directory. An unset OR
     //    empty value falls through to the embedded/disk assets below.
-    if let Some(dir) = std::env::var("VGRAPHTREE_STATIC_DIR")
+    if let Some(dir) = std::env::var("CAIRN_STATIC_DIR")
         .ok()
         .filter(|d| !d.is_empty())
     {
@@ -221,7 +221,7 @@ async fn serve(config_path: String, port: u16, host: &str) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
-    println!("vgraphtree running at http://{host}:{port}");
+    println!("cairn running at http://{host}:{port}");
     if let Err(e) = axum::serve(listener, app).await {
         eprintln!("error: server failed: {e}");
         return ExitCode::FAILURE;

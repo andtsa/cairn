@@ -1,4 +1,4 @@
-// The app-owned state file (`vgraphtree.state.yaml`).
+// The app-owned state file (`cairn.state.yaml`).
 //
 // Holds data the app writes but that is not human intent: exact pin positions
 // (the intent file carries the semantic `zone` instead) and dismissed ghost

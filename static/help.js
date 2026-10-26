@@ -13,7 +13,7 @@ const CONCEPTS = [
   ['Level of detail', 'Alt+scroll a node or hovering over it and pressing `e` / `c` will expand / collapse its children. Shift+E / Shift+C expands / collapses the whole graph.'],
   ['Scope', 'Hover a node and press `Enter` (or right-click → Go into) to show only its subgraph, like `cd`. `Backspace` goes up a level; the breadcrumb bar at the top jumps to any ancestor. The scope is kept in the URL, so refresh and browser back/forward work.'],
   ['Descriptions', 'Nodes and edges can carry a description. Hover to see it in a popup (after a short settle delay), or switch node descriptions to inline captions in the config panel. Descriptions support `- ` bullet lists, `1. ` numbered lists, blank-line paragraphs and backtick code. Lists need line breaks, so write the description as a YAML literal block (`description: |`) rather than a folded one (`>-`).'],
-  ['Config panel', 'P opens the settings panel, with engine, layout / physics parameters, colours, and behaviour. Changes apply live and persist to a per-project .vgraphtree.config.yaml.'],
+  ['Config panel', 'P opens the settings panel, with engine, layout / physics parameters, colours, and behaviour. Changes apply live and persist to a per-project .cairn.config.yaml.'],
   ['Editing', 'Right-click a node to go into / rename / unpin, double-click to open its source, click an edge to annotate it, Shift+drag to pin. Ctrl+S saves; the discard button reloads from disk.'],
 ];
 

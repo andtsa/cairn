@@ -81,7 +81,7 @@ export function getDirty() { return _dirty; }
 export function setDirty(val) {
   _dirty = val;
   document.getElementById('dirty-indicator').textContent = val ? '● unsaved' : '';
-  document.title = val ? '● vgraphtree' : 'vgraphtree';
+  document.title = val ? '● cairn' : 'cairn';
   // Discard is only offered when there are unsaved edits to discard.
   const db = document.getElementById('discard-btn');
   if (db) db.hidden = !val;

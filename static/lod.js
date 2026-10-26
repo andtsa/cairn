@@ -22,8 +22,8 @@ export function noteCycle(nodeId) {
   if (reportedCycles.has(nodeId)) return;
   reportedCycles.add(nodeId);
   console.warn(
-    `[vgraphtree] node '${nodeId}' sits on a parent/children cycle — skipping it. ` +
-    `The map is malformed; run \`lookout check\` for the offending id.`);
+    `[cairn] node '${nodeId}' sits on a parent/children cycle — skipping it. ` +
+    `The map is malformed; run \`cairn check\` for the offending id.`);
 }
 
 // ─── Visibility predicates ────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-# vgraphtree — Open Questions & Decision Points
+# cairn — Open Questions & Decision Points
 
 > Consolidated tracker of everything still undecided or deferred, gathered from
 > `design-decisions.md` (Q1–Q5), `config-architecture.md` §12, `plan.md` §13,
@@ -73,11 +73,11 @@ Status legend: 🔵 decidable now (no LSP dependency) · 🟡 needs Phase B cont
 
 Each is additive on the Phase A shape; listed so scope doesn't creep.
 
-- **D1 — Cache file + `source_hash` invalidation.** `.vgraphtree/lsp-cache.yaml`
+- **D1 — Cache file + `source_hash` invalidation.** `.cairn/lsp-cache.yaml`
   writer/reader, staleness stamp, warm-start load path.
 - **D2 — `derive_children` wired to an LSP scan.** Currently parsed but inert.
 - **D3 — Server-side staleness / rebind loop.** Resolve every `source` against
-  real code; surface dangling bindings for re-bind; `vgraphtree check` as a CLI
+  real code; surface dangling bindings for re-bind; `cairn check` as a CLI
   entrypoint over the same logic.
 - **D4 — Ghost nodes + `dismissed` enforcement.** Suggestion surface; the
   `dismissed` list exists in the schema but nothing populates or honours it yet.
@@ -128,7 +128,7 @@ v1 shipped (eager load, read-only nested, mount-level cross edges — D30–D33,
 - **F3 — Fine-grained cross-project edges.** Outer edges that reference namespaced
   inner ids (`auth/X → billing/Y`); v1 connects only at the mount boundary.
 - **F4 — Auto-discovery.** Optionally mount any `source:` dir that contains a
-  `vgraphtree.yaml`, without an explicit `include`.
+  `cairn.yaml`, without an explicit `include`.
 - **F5 — Unpinned-mount drift.** A rigid nested cluster under a force-directed mount
   drifts from it; fine when mounts are anchored (the common case). Revisit if it
   bites — likely a "move the cluster with the mount" tick force.

@@ -1,4 +1,4 @@
-// The human-intent file (`vgraphtree.yaml`).
+// The human-intent file (`cairn.yaml`).
 //
 // On-disk types are deliberately sparse — `level` is derived from nesting depth,
 // `kind` is inferred from the binding, provenance comes from file location + key
@@ -62,7 +62,7 @@ pub struct IntentNode {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pin: Option<Position>,
     /// Mount point: delegate this node's subtree to the referenced inner
-    /// `vgraphtree.yaml` (path relative to this config's directory).
+    /// `cairn.yaml` (path relative to this config's directory).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub include: Option<String>,
     #[serde(default, skip_serializing_if = "is_false")]
@@ -746,7 +746,7 @@ nodes:
         fs::create_dir_all(auth.join("src")).unwrap();
         fs::write(auth.join("src/lib.rs"), "// x").unwrap();
         fs::write(
-            auth.join("vgraphtree.yaml"),
+            auth.join("cairn.yaml"),
             r#"
 project: { root: . }
 nodes:
@@ -762,14 +762,14 @@ edges:
         )
         .unwrap();
         fs::write(
-            base.join("vgraphtree.yaml"),
+            base.join("cairn.yaml"),
             r#"
 project: { root: . }
 nodes:
   auth:
     label: Auth service
     pin: { x: 500.0, y: 500.0 }
-    include: services/auth/vgraphtree.yaml
+    include: services/auth/cairn.yaml
   billing: { label: Billing }
 edges:
   - { from: auth, to: billing, annotation: events }
@@ -777,7 +777,7 @@ edges:
         )
         .unwrap();
 
-        let outer = base.join("vgraphtree.yaml");
+        let outer = base.join("cairn.yaml");
         let (graph, project, warnings) = compose(outer.to_str().unwrap()).unwrap();
         assert!(warnings.is_empty());
 
@@ -833,25 +833,25 @@ edges:
         let base = tmp("incchild");
         fs::create_dir_all(base.join("inner")).unwrap();
         fs::write(
-            base.join("inner/vgraphtree.yaml"),
+            base.join("inner/cairn.yaml"),
             "project: { root: . }\nnodes:\n  x: { label: X }\n",
         )
         .unwrap();
         fs::write(
-            base.join("vgraphtree.yaml"),
+            base.join("cairn.yaml"),
             r#"
 project: { root: . }
 nodes:
   m:
     label: M
-    include: inner/vgraphtree.yaml
+    include: inner/cairn.yaml
     children:
       ghost: { label: Ghost }
 "#,
         )
         .unwrap();
         let (graph, _p, warnings) =
-            compose(base.join("vgraphtree.yaml").to_str().unwrap()).unwrap();
+            compose(base.join("cairn.yaml").to_str().unwrap()).unwrap();
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].contains("children ignored"));
         assert!(!graph.nodes.contains_key("ghost"), "inline child dropped");
