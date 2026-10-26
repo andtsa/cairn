@@ -119,6 +119,20 @@ and open [localhost](http://localhost:7777) as instructed
 
 in the browser, press `?` to open the documentation panel
 
+### writing maps with claude code
+
+[`skills/vgraphtree-config`](skills/vgraphtree-config) is a Claude Code skill that teaches
+an agent to author `vgraphtree.yaml` maps: the schema, how to group and nest, and how to
+validate. it lives here so it changes together with the format it documents.
+
+maps get written from other repositories, so install the skill as a personal skill (a
+project skill would only load inside this repo). symlink it rather than copying, so a
+`git pull` keeps it current:
+```sh
+ln -s "$PWD/skills/vgraphtree-config" ~/.claude/skills/vgraphtree-config
+```
+run that from the root of this repository, once per machine.
+
 
 ## and now?
 

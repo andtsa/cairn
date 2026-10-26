@@ -6,3 +6,5 @@ target/
 vgraphtree.state.yaml
 # personal config dotfile (per-project, not committed)
 .vgraphtree.config.yaml
+# the map-authoring skill is committed, even where a global ignore matches *vgraphtree*
+!skills/vgraphtree-config/
