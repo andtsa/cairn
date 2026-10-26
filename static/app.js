@@ -32,6 +32,7 @@ import { setupKeybindings, renderHelpBar } from './keybindings.js';
 import { loadConfig, onConfigChange } from './config.js';
 import { renderConfigPanel } from './config-panel.js';
 import { initHelpPanel, toggleHelp, isHelpOpen, closeHelp } from './help.js';
+import { openWaymark, isWaymarkOpen, closeWaymark } from './waymark.js';
 import { normaliseSource } from './code-panel.js';
 
 // ─── Visibility refresh ───────────────────────────────────────────────────────
@@ -161,6 +162,22 @@ function renderScopeBar() {
 
 window.addEventListener('popstate', () => setScope(scopeFromHash(), { push: false }));
 
+// ─── Waymarks ─────────────────────────────────────────────────────────────────
+// Which waymark W opens: the hovered node's, else the innermost scope that has
+// one (so inside an included codebase you get its summary), else the map root's.
+
+let rootWaymark = null;   // the map root's waymark path, from GET /graph
+
+function waymarkTarget() {
+  const hovered = nodes[hoveredNodeId];
+  if (hovered?.waymark) return hovered;
+  if (scopeRootId !== null) {
+    const scoped = ancestorChain(scopeRootId).reverse().find(n => n.waymark);
+    if (scoped) return scoped;
+  }
+  return rootWaymark ? null : undefined;   // undefined = nothing to show
+}
+
 // ─── Keyboard shortcuts ───────────────────────────────────────────────────────
 // All bindings and their help text live in keybindings.js. Here we only supply
 // the actions they invoke (the context object), then hand off to the dispatcher.
@@ -169,9 +186,10 @@ const keyContext = {
   getDirty,
   save: async () => { await postSave(); setDirty(false); },
   toggleHelp: toggleHelp,
-  // Esc closes the help panel first if it's open, otherwise clears focus.
+  // Esc closes an open popup (help / waymark) first, otherwise clears focus.
   clearFocus: () => {
     if (isHelpOpen()) { closeHelp(); return; }
+    if (isWaymarkOpen()) { closeWaymark(); return; }
     if (clearFocus()) refreshVisibility(FOCUS_REHEAT_ALPHA);
   },
   toggleDisplayMode: () => {
@@ -183,6 +201,11 @@ const keyContext = {
   toggleDebug: () => {
     setDebugMode(!debugMode);
     if (debugMode) renderDebug(); else clearDebug();
+  },
+  toggleWaymark: () => {
+    if (isWaymarkOpen()) { closeWaymark(); return; }
+    const target = waymarkTarget();
+    if (target !== undefined) openWaymark(target);
   },
   toggleConfigPanel: () => document.getElementById('config-panel').classList.toggle('hidden'),
   zoomBy: factor => svg.transition().duration(250).call(zoom.scaleBy, factor),
@@ -293,6 +316,8 @@ async function init() {
   const data = await fetchGraph();
 
   setNodes(data.nodes);
+  rootWaymark = data.waymark ?? null;
+  document.getElementById('waymark-btn').hidden = !rootWaymark;
 
   // Build edges map
   setEdges({});
@@ -375,6 +400,8 @@ document.getElementById('discard-btn').addEventListener('click', async () => {
   await postReload();
   window.location.reload();
 });
+
+document.getElementById('waymark-btn').addEventListener('click', () => openWaymark(null));
 
 // ─── Window resize ────────────────────────────────────────────────────────────
 

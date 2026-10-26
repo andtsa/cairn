@@ -8,7 +8,9 @@ description: >-
   this repo with cairn", "create a cairn.yaml", "set up cairn here",
   "document this codebase as a graph", or pointing cairn at a new (possibly
   large) project. Trigger it even when the user describes the outcome without
-  naming the file, as long as they want a cairn config produced.
+  naming the file, as long as they want a cairn config produced. Also covers
+  writing or refreshing a waymark.md (a codebase's short summary file that
+  cairn displays), e.g. "write a waymark", "update the waymark".
 ---
 
 # cairn config author
@@ -74,6 +76,8 @@ is it just mirroring the file system?* Author the former.
   map). Read it to calibrate *granularity and style*: how coarse to go, how to
   phrase edge annotations, how to lay out the top level. Model the shape on it;
   don't copy its contents.
+- `references/waymark-format.md` — the `waymark.md` summary format: where it
+  lives, how cairn finds it, its outline, and what stays out of it.
 
 ## The schema in one screen
 
@@ -325,6 +329,23 @@ Either way, the most common error is a dangling edge (`from`/`to` referencing a
 node id that doesn't exist) — usually a typo or a renamed node. Fix all findings
 before finishing.
 
+### 8. Write (or refresh) the waymark
+
+The map is the in-depth graph; a **waymark** (`waymark.md` at the codebase root)
+is its one-screen prose companion, answering "what is this codebase about?". You
+have just built the mental model it needs, so write one alongside the map unless
+the user says otherwise. Read `references/waymark-format.md` for the outline.
+Keep it under ~60 lines: identity, the major parts (mirroring the map's top-level
+systems), entry points, and optionally conventions and status.
+
+If a `waymark.md` already exists, **update it in place** rather than replacing it
+wholesale: keep what's still true, fix what drifted, and preserve the author's
+voice. A waymark describes the codebase as it is now, never its history.
+
+For composed maps, each included subproject can carry its own `waymark.md` at its
+root, and cairn attaches it to the mount node. The same goes for any directory a
+node binds to.
+
 ## Output
 
 Write `cairn.yaml` at the **project root** (the directory the map describes),
@@ -337,6 +358,7 @@ using `root: .`. Keep it hand-authored and clean:
   style for nodes with children — it reads well and diffs cleanly.
 - Do **not** create the `cairn.state.yaml` file — positions are personal and
   the app generates it. Your zones live in the intent file.
+- Write `waymark.md` next to it (step 8).
 
 Then tell the user what you mapped (systems, rough node/edge counts, notable
 groupings you inferred) and invite them to refine labels, groupings, and layout in

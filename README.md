@@ -103,6 +103,20 @@ the lines into one:
       - replays the last snapshot to new subscribers
 ```
 
+### waymarks
+
+a map is the in-depth view; a **waymark** is the short one. `waymark.md`, kept at the
+root of a codebase, is an in-place, continuously updated, single-file summary of what
+the codebase is: what it's for, its major parts, and where to start. it's meant to be
+the first thing a person or agent reads, and to be edited (not appended to) whenever
+the codebase changes in a way that makes it wrong.
+
+cairn finds waymarks automatically, at the map's root (the *waymark* button in the
+HUD), at the root of every `include:`d map, and in any directory a node binds to.
+nodes with one get a ▲ badge: click it, or hover and press `W`. see
+[this repo's waymark](waymark.md) and
+[the format guide](skills/cairn-build/references/waymark-format.md).
+
 ## using this
 
 to use this, you need 2 things:
@@ -122,8 +136,8 @@ in the browser, press `?` to open the documentation panel
 ### writing maps with claude code
 
 [`skills/cairn-build`](skills/cairn-build) is a Claude Code skill that teaches
-an agent to author `cairn.yaml` maps: the schema, how to group and nest, and how to
-validate. it lives here so it changes together with the format it documents.
+an agent to author `cairn.yaml` maps (the schema, how to group and nest, and how to
+validate) and to write and refresh `waymark.md` summaries. it lives here so it changes together with the format it documents.
 
 maps get written from other repositories, so install the skill as a personal skill (a
 project skill would only load inside this repo). symlink it rather than copying, so a

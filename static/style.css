@@ -335,6 +335,23 @@ body {
 #discard-btn:hover { border-color: var(--focus); }
 #discard-btn[hidden] { display: none; }
 
+#waymark-btn {
+  pointer-events: auto;   /* #hud is pointer-events:none — re-enable for the button */
+  display: block;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  color: var(--gold);
+  font-family: monospace;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 3px;
+}
+#waymark-btn::before { content: '▲ '; }
+#waymark-btn:hover { border-color: var(--gold); }
+#waymark-btn[hidden] { display: none; }
+
 /* Scope breadcrumbs (top centre) */
 #scope-bar {
   position: fixed;
@@ -826,6 +843,16 @@ select.cfg-input { cursor: pointer; }
 .node.symkind-type      .node-glyph-bg,
 .node.symkind-macro     .node-glyph-bg { fill: #fe8019; }  /* orange */
 
+/* Waymark badge — top-right of a node that roots a codebase with a waymark.md.
+   Clickable, unlike the rest of the node's text (see .node text). */
+.node text.node-waymark {   /* beats .node.level-1 text by source order */
+  font-size: 9px;
+  fill: var(--gold);
+  pointer-events: all;
+  cursor: help;
+}
+.node text.node-waymark:hover { fill: var(--accent-light); }
+
 /* Line-numbered code: a (number, line) grid so numbers stay level with
    wrapped lines (see addLineNumbers in code-panel.js). */
 #code-panel code.code-numbered {   /* beats the hljs theme's `pre code.hljs { display: block }` */
@@ -898,6 +925,40 @@ body.desc-inline .node-desc { display: inline; }
   background: rgba(0, 0, 0, 0.55);
 }
 #help-panel.hidden { display: none; }
+
+/* ── Waymark panel (modal overlay) — waymark.js. Reuses the help card chrome. ── */
+#waymark-panel {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+#waymark-panel.hidden { display: none; }
+.waymark-card .help-title { gap: 12px; }
+.waymark-path {
+  flex: 1; text-align: right;
+  color: var(--text-muted); font-size: 11px; letter-spacing: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Rendered document markdown (renderDocument in markdown.js). Paragraph lines
+   arrive joined by '\n' — white-space: normal reflows them like markdown. */
+.waymark-body { color: var(--text-secondary); padding-top: 4px; user-select: text; }
+.waymark-body :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--gold); font-size: 14px; font-weight: 600; margin: 18px 0 6px;
+}
+.waymark-body h1 { color: var(--accent); font-size: 16px; }
+.waymark-body h2 { font-size: 14px; }
+.waymark-body :is(h3, h4, h5, h6) { color: var(--text-primary); font-size: 13px; }
+.waymark-body p, .waymark-body ul, .waymark-body ol { margin: 6px 0; }
+.waymark-body ul, .waymark-body ol { padding-left: 3.5ch; }
+.waymark-body li + li { margin-top: 2px; }
+.waymark-body strong { color: var(--text-primary); }
+.waymark-body .md-code { white-space: pre-wrap; }
+.waymark-body .md-pre {
+  background: var(--bg-deep); border: 1px solid var(--border-subtle);
+  border-radius: 4px; padding: 8px 10px; margin: 8px 0;
+  color: var(--text-primary); font: 12px/1.45 ui-monospace, monospace;
+  white-space: pre; overflow-x: auto;
+}
 .help-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-dim);

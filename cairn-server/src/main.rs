@@ -196,6 +196,7 @@ async fn serve(config_path: String, port: u16, host: &str) -> ExitCode {
             get(routes::config::get_config).put(routes::config::put_config),
         )
         .route("/file", get(routes::file::get_file))
+        .route("/waymark", get(routes::waymark::get_waymark))
         .route(
             "/status",
             get(|state: axum::extract::State<AppState>| async move {

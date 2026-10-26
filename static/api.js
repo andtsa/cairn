@@ -46,6 +46,14 @@ export async function fetchFile(path, start, end) {
   return r.json();
 }
 
+// A waymark summary: a node's (by id), or the map root's when nodeId is null.
+export async function fetchWaymark(nodeId) {
+  const params = nodeId == null ? '' : `?${new URLSearchParams({ node: nodeId })}`;
+  const r = await fetch(`${BASE}/waymark${params}`);
+  if (!r.ok) throw new Error(`No waymark for ${nodeId ?? 'the map root'}`);
+  return r.json();
+}
+
 export async function fetchStatus() {
   const r = await fetch(`${BASE}/status`);
   return r.json();

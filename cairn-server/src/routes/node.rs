@@ -117,6 +117,7 @@ pub async fn create_node(
         nested: false,
         include: None,
         source_missing: false,
+        waymark: None,
         label_overridden: true, // created with an explicit label
         dirty: false,
     };

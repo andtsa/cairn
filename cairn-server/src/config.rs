@@ -215,6 +215,7 @@ fn flatten_node(
         nested: false,
         include: intent.include.clone(),
         source_missing: false, // filled in by mark_missing_sources after flatten
+        waymark: None,         // filled in by compose (see mark_waymarks)
         label_overridden,
         dirty: false,
     };
@@ -279,7 +280,10 @@ fn mark_missing_sources(graph: &mut NodeGraph, root: &std::path::Path) {
 /// inner content is flagged `nested` (read-only). Returns non-fatal warnings (e.g.
 /// `include` + `children`); Err on read / parse / cycle failure.
 pub fn compose(config_path: &str) -> Result<(NodeGraph, ProjectConfig, Vec<String>), String> {
-    compose_inner(config_path, &mut Vec::new())
+    let (mut graph, project, warnings) = compose_inner(config_path, &mut Vec::new())?;
+    // After the splice, every source resolves against the outermost root.
+    mark_waymarks(&mut graph, &resolved_root(config_path, &project));
+    Ok((graph, project, warnings))
 }
 
 fn compose_inner(
@@ -343,6 +347,14 @@ fn compose_inner(
 
         let inner_root = resolved_root(&inner_path_str, &inner_project);
         splice(&mut graph, &mount_id, inner_graph, &inner_root, &outer_root);
+
+        // An included map is a codebase of its own; its waymark (if it has one)
+        // sits at its root and belongs to the mount.
+        if waymark_in(&inner_root).is_some() {
+            if let Some(mount) = graph.nodes.get_mut(&mount_id) {
+                mount.waymark = Some(rewrite_source(WAYMARK_FILE, &inner_root, &outer_root));
+            }
+        }
     }
 
     chain.pop();
@@ -378,6 +390,9 @@ fn splice(
         };
         if let Some(src) = &node.source {
             node.source = Some(rewrite_source(src, inner_root, outer_root));
+        }
+        if let Some(wm) = &node.waymark {
+            node.waymark = Some(rewrite_source(wm, inner_root, outer_root));
         }
         graph.nodes.insert(new_id, node);
     }
@@ -419,6 +434,34 @@ fn rewrite_source(src: &str, inner_root: &Path, outer_root: &Path) -> String {
         out.push_str(sym);
     }
     out
+}
+
+// ─── Waymarks ─────────────────────────────────────────────────────────────────
+
+/// A codebase's one-file summary, kept at its root next to (or instead of) its
+/// map. The map is the in-depth graph; the waymark is the "what is this?" read.
+pub const WAYMARK_FILE: &str = "waymark.md";
+
+/// The waymark at the root of `dir`, if there is one.
+pub fn waymark_in(dir: &Path) -> Option<PathBuf> {
+    let path = dir.join(WAYMARK_FILE);
+    path.is_file().then_some(path)
+}
+
+/// Tag every directory-bound node whose directory holds a waymark: a waymark
+/// marks its directory as a codebase root even without an `include` mount.
+/// Mounts were already tagged during compose; symbol bindings never are.
+fn mark_waymarks(graph: &mut NodeGraph, root: &Path) {
+    for node in graph.nodes.values_mut() {
+        if node.waymark.is_some() || node.symbol.is_some() {
+            continue;
+        }
+        let Some(src) = &node.source else { continue };
+        if waymark_in(&root.join(src)).is_some() {
+            let path = Path::new(src).join(WAYMARK_FILE);
+            node.waymark = Some(path.to_string_lossy().replace('\\', "/"));
+        }
+    }
 }
 
 /// Remove a set of node subtrees (and any edges touching them) from the graph.
@@ -856,6 +899,60 @@ nodes:
         assert!(warnings[0].contains("children ignored"));
         assert!(!graph.nodes.contains_key("ghost"), "inline child dropped");
         assert!(graph.nodes.contains_key("m/x"), "inner spliced");
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    // ─── Waymarks ─────────────────────────────────────────────────────────────
+
+    /// Mounts pick up their included map's waymark (at any include depth), and
+    /// directory bindings pick up one sitting in their directory. Every path must
+    /// resolve from the outermost root, like `source`.
+    #[test]
+    fn compose_discovers_waymarks() {
+        use std::fs;
+        let base = tmp("waymark");
+        let auth = base.join("services/auth");
+        let token = auth.join("token");
+        fs::create_dir_all(&token).unwrap();
+        fs::create_dir_all(base.join("tools/lint")).unwrap();
+        fs::create_dir_all(base.join("docs")).unwrap();
+        fs::write(auth.join(WAYMARK_FILE), "# auth").unwrap();
+        fs::write(token.join(WAYMARK_FILE), "# token").unwrap();
+        fs::write(base.join("tools/lint").join(WAYMARK_FILE), "# lint").unwrap();
+        fs::write(token.join("cairn.yaml"), "project: { root: . }\nnodes:\n  t: { label: T }\n").unwrap();
+        fs::write(
+            auth.join("cairn.yaml"),
+            "project: { root: . }\nnodes:\n  tok: { include: token/cairn.yaml }\n",
+        )
+        .unwrap();
+        fs::write(
+            base.join("cairn.yaml"),
+            r#"
+project: { root: . }
+nodes:
+  auth: { include: services/auth/cairn.yaml }
+  lint: { source: tools/lint/ }
+  docs: { source: docs/ }
+"#,
+        )
+        .unwrap();
+
+        let (graph, project, _) = compose(base.join("cairn.yaml").to_str().unwrap()).unwrap();
+        let root = resolved_root(base.join("cairn.yaml").to_str().unwrap(), &project);
+        let read = |id: &str| {
+            let wm = graph.nodes[id].waymark.as_deref().unwrap_or_else(|| panic!("no waymark on {id}"));
+            fs::read_to_string(root.join(wm)).unwrap()
+        };
+
+        assert_eq!(read("auth"), "# auth");
+        assert_eq!(read("auth/tok"), "# token", "nested mount path rewritten to the outer root");
+        assert_eq!(read("lint"), "# lint");
+        assert!(graph.nodes["docs"].waymark.is_none(), "no waymark in docs/");
+
+        // Discovered, never authored: saving must not write it into the intent.
+        let out = serialize_intent(&graph, &project).unwrap();
+        assert!(!out.contains("waymark"), "waymark leaked into intent output");
+
         let _ = fs::remove_dir_all(&base);
     }
 }

@@ -5,3 +5,4 @@ pub mod graph;
 pub mod node;
 pub mod reload;
 pub mod save;
+pub mod waymark;

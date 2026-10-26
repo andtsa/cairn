@@ -6,3 +6,6 @@ target/
 cairn.state.yaml
 # personal config dotfile (per-project, not committed)
 .cairn.config.yaml
+# the global excludesfile hides cairn artifacts in every repo; this repo ships its own
+!/cairn.yaml
+!/waymark.md

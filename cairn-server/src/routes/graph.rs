@@ -1,3 +1,4 @@
+use crate::config::{waymark_in, WAYMARK_FILE};
 use crate::routes::reload::load_from_disk;
 use crate::AppState;
 use axum::{extract::State, http::StatusCode, Json};
@@ -24,5 +25,8 @@ pub async fn get_graph(State(state): State<AppState>) -> Result<Json<Value>, Sta
         .map(|e| serde_json::to_value(e).unwrap())
         .collect();
 
-    Ok(Json(json!({ "nodes": nodes, "edges": edges })))
+    // The map's own root has no node to hang a waymark on, so it rides along here.
+    let waymark = waymark_in(&state.resolved_root).map(|_| WAYMARK_FILE);
+
+    Ok(Json(json!({ "nodes": nodes, "edges": edges, "waymark": waymark })))
 }

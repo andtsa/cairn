@@ -29,6 +29,9 @@ const glyphFor = k => (k ? (SYM_GLYPH[k] || k[0].toUpperCase()) : '');
 // before these run.
 const glyphX   = d => -d.w / 2 + 10;
 const glyphY   = d => -d.h / 2 + 10;
+// Waymark badge: top-right corner, mirroring the symbol glyph. On an expanded
+// container it moves to the right end of the header strip (updateContainers).
+const waymarkX = d =>  d.w / 2 - 10;
 
 // Inline description caption (shown under the node in 'inline' mode). Truncated
 // so it stays a single readable line; the full text is available on hover. SVG
@@ -85,6 +88,14 @@ export function renderNodes() {
     .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
     .text(d => glyphFor(d.symbol_kind));
 
+  // Waymark badge — only on nodes that root a codebase with a waymark.md.
+  // Clickable (interaction.js opens the summary); SVG <title> is its tooltip.
+  enter.filter(d => d.waymark).append('text').attr('class', 'node-waymark')
+    .attr('x', waymarkX).attr('y', glyphY)
+    .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+    .text('▲')
+    .append('title').text('read waymark (W)');
+
   // Description caption under the node — visible only in 'inline' mode (CSS).
   enter.append('text').attr('class', 'node-desc')
     .attr('x', 0).attr('y', descY)
@@ -108,6 +119,7 @@ export function resizeNodeBox(node) {
   el.select('.node-rect').attr('x', -node.w / 2).attr('width', node.w);
   el.select('.node-glyph-bg').attr('cx', glyphX(node)).attr('cy', glyphY(node));
   el.select('.node-glyph').attr('x', glyphX(node)).attr('y', glyphY(node));
+  el.select('.node-waymark').attr('x', waymarkX(node)).attr('y', glyphY(node));
   el.select('.node-desc').attr('y', descY(node));
 }
 
@@ -330,6 +342,7 @@ export function updateContainers() {
       el.select('.container-hit').attr('display', 'none');
       el.select('text').attr('x', 0).attr('y', 0)
         .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle');
+      el.select('.node-waymark').attr('x', waymarkX(d)).attr('y', glyphY(d));
       d.containerBounds = null;
       continue;
     }
@@ -343,6 +356,7 @@ export function updateContainers() {
       el.select('.node-rect').attr('display', null);
       el.select('text').attr('x', 0).attr('y', 0)
         .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle');
+      el.select('.node-waymark').attr('x', waymarkX(d)).attr('y', glyphY(d));
       d.containerBounds = null;
       continue;
     }
@@ -397,6 +411,8 @@ export function updateContainers() {
     el.select('text')
       .attr('x', minX + 10).attr('y', minY + CONTAINER_LABEL_H - 8)
       .attr('text-anchor', 'start').attr('dominant-baseline', 'middle');
+    el.select('.node-waymark')
+      .attr('x', maxX - 12).attr('y', minY + CONTAINER_LABEL_H - 8);
 
     d.containerBounds = {
       x: d.x + minX, y: d.y + minY,

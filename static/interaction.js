@@ -19,6 +19,7 @@ import { patchNode, patchEdge } from './api.js';
 import { openCodePanel, toggleCodePanel } from './code-panel.js';
 import { SCROLL_THRESHOLD, DRAG_THRESHOLD, FOCUS_REHEAT_ALPHA } from './constants.js';
 import { renderMarkdown } from './markdown.js';
+import { openWaymark } from './waymark.js';
 
 // ─── Hover tooltip (node / edge descriptions) ─────────────────────────────────
 
@@ -316,6 +317,7 @@ export function showContextMenu(event, d) {
   document.getElementById('ctx-rename').style.display = d.nested ? 'none' : 'block';
   document.getElementById('ctx-unpin').style.display = d.pin ? 'block' : 'none';
   document.getElementById('ctx-enter').style.display = isLeafNode(d) ? 'none' : 'block';
+  document.getElementById('ctx-waymark').style.display = d.waymark ? 'block' : 'none';
 }
 
 export function hideContextMenu() {
@@ -354,6 +356,13 @@ document.getElementById('ctx-open-source').addEventListener('click', () => {
   const d = ctxNode;
   hideContextMenu();
   if (d.source) openCodePanel(d);
+});
+
+document.getElementById('ctx-waymark').addEventListener('click', () => {
+  if (!ctxNode) return;
+  const d = ctxNode;
+  hideContextMenu();
+  openWaymark(d);
 });
 
 svg.on('click.context', hideContextMenu);
@@ -433,6 +442,7 @@ export function setupNodeInteractions(refreshFn, enterScopeFn) {
   allNodes.on('click', (event, d) => {
     event.stopPropagation();
     if (_dragMoved) { _dragMoved = false; return; }
+    if (event.target.classList.contains('node-waymark')) { openWaymark(d); return; }
     if (!event.altKey) return;             // plain click: no-op
     toggleFocusedNode(d.id);
     refreshFn(FOCUS_REHEAT_ALPHA);         // relayout so the focused subgraph opens up

@@ -87,6 +87,12 @@ pub struct Node {
     /// in the UI so broken bindings are visible without opening the file.
     #[serde(default)]
     pub source_missing: bool,
+    /// Path of the `waymark.md` summary for the codebase rooted at this node — a
+    /// mount whose included map has one at its root, or a directory binding that
+    /// contains one. Resolves like `source` (relative to the project root, or
+    /// absolute when outside it). Discovered at compose time, never saved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub waymark: Option<String>,
     /// True when the intent file carried an explicit `label:` key. Absence means
     /// "follow the code" — used to decide whether to emit a label on save.
     #[serde(skip)]

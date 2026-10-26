@@ -68,6 +68,11 @@ export const KEY_BINDINGS = [
     run: (e, cx) => { e.preventDefault(); cx.leaveScope(); },
   },
   {
+    combo: 'W', desc: 'read the waymark (codebase summary) of the hovered node, the current scope, or the whole map',
+    match: e => (e.key === 'w' || e.key === 'W') && !e.ctrlKey && !e.metaKey && !e.altKey,
+    run: (e, cx) => cx.toggleWaymark(),
+  },
+  {
     combo: 'P', desc: 'open config panel',
     match: e => (e.key === 'p' || e.key === 'P') && !e.ctrlKey && !e.metaKey && !e.altKey,
     run: (e, cx) => cx.toggleConfigPanel(),
@@ -99,7 +104,8 @@ export const POINTER_HINTS = [
   { combo: 'Shift+drag',            desc: 'pin a node to a fixed position (right click and choose "unpin" to let it float dynamically again)' },
   { combo: 'Alt+click',             desc: 'focus a specific node, revealing its incoming and outgoing edges' },
   { combo: 'Dbl-click',             desc: 'open source directory/file/symbol of this node' },
-  { combo: 'Right-click',           desc: 'go into/rename/unpin a node' },
+  { combo: 'Right-click',           desc: 'go into/rename/unpin a node, or read its waymark' },
+  { combo: 'Click ▲ badge',         desc: "read that node's waymark (codebase summary)" },
   { combo: 'Click edge',            desc: 'annotate an edge, or edit the label' },
 ];
 

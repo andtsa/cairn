@@ -21,6 +21,9 @@
 <!-- Help panel (modal overlay) — rendered by help.js, toggled with ? -->
 <div id="help-panel" class="hidden"></div>
 
+<!-- Waymark panel (modal overlay) — a codebase summary, rendered by waymark.js -->
+<div id="waymark-panel" class="hidden"></div>
+
 <!-- Scope breadcrumbs — shown while "inside" a node (see setScope in app.js) -->
 <nav id="scope-bar" hidden></nav>
 
@@ -32,6 +35,7 @@
   <div id="debug-indicator" hidden></div>
   <div id="dirty-indicator"></div>
   <button id="discard-btn" hidden>discard edits</button>
+  <button id="waymark-btn" hidden title="Read this codebase's summary (W)">waymark</button>
   <div id="key-hints" style="color:#444;margin-top:4px"></div>
 </div>
 
@@ -57,6 +61,7 @@
   <div class="context-menu-item" id="ctx-enter">Go into</div>
   <div class="context-menu-item" id="ctx-rename">Rename</div>
   <div class="context-menu-item" id="ctx-open-source">Open source</div>
+  <div class="context-menu-item" id="ctx-waymark">Read waymark</div>
   <div class="context-menu-item" id="ctx-unpin">Unpin</div>
 </div>
 

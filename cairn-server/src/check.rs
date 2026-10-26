@@ -6,7 +6,7 @@
 // parent cycles) are *errors* and exit non-zero. Future checks (dead edge
 // endpoints, …) slot in as additional passes before the summary.
 
-use crate::config::{compose, resolved_root};
+use crate::config::{compose, resolved_root, waymark_in};
 use crate::graph::NodeGraph;
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -44,9 +44,13 @@ pub fn run_check(config_path: &str) -> ExitCode {
         println!("warning: node '{id}' → source '{source}' not found");
     }
 
+    // Informational: which codebase roots carry a waymark summary.
+    let waymarks = graph.nodes.values().filter(|n| n.waymark.is_some()).count()
+        + usize::from(waymark_in(&root).is_some());
+
     let errors = warnings.len() + cycles.len();
     println!(
-        "checked {checked} source link(s): {} warning(s), {errors} error(s)",
+        "checked {checked} source link(s): {} warning(s), {errors} error(s); found {waymarks} waymark(s)",
         broken.len(),
     );
     if errors == 0 {

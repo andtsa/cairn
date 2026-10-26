@@ -21,6 +21,7 @@ nodes:
       layout_cola:     { label: Cola layout,    source: static/layout-cola.js,   description: "Alternative WebCola constraint engine (layered / radial / stress) with animated transitions." }
       mod_interaction: { label: Interaction,    source: static/interaction.js,   description: "Drag, hover tooltips, rename / annotate, focus, and the context menu." }
       mod_code_panel:  { label: Code panel,     source: static/code-panel.js,    description: "File / directory browser that scrolls to and highlights a node's bound symbol." }
+      mod_waymark:     { label: Waymark panel,  source: static/waymark.js,       description: "Modal popup that renders a codebase's waymark.md summary, fetched fresh on open." }
       keybindings:     { label: Keybindings,    source: static/keybindings.js,   description: "Single source of truth for keyboard shortcuts and the generated help bar." }
       debug:           { label: Force debug,    source: static/debug.js,         description: "Toggleable overlay of the force sim (velocity, collision, targets) for physics tuning." }
       config_store:    { label: Config store,   source: static/config.js,        description: "Loads and persists the personal dotfile and applies each setting live." }
@@ -34,6 +35,12 @@ nodes:
     label: Intent map
     source: cairn.yaml
     description: The file that contains the actual graph, with all the nodes, labels, descriptions, and edges between them.
+    zone: bottom
+
+  waymark_doc:
+    label: Waymark
+    source: waymark.md
+    description: The codebase's one-screen summary. The map goes deep; the waymark is the short read before it.
     zone: bottom
 
   backend:
@@ -54,6 +61,7 @@ nodes:
           file:         { label: File,   source: cairn-server/src/routes/file.rs,   description: "Reads file contents (line range) and directory listings." }
           reload:       { label: Reload, source: cairn-server/src/routes/reload.rs, description: "Re-parses the intent + state files from disk." }
           config_route: { label: Config, source: cairn-server/src/routes/config.rs, description: "GET / PUT the personal config dotfile." }
+          waymark_route: { label: Waymark, source: cairn-server/src/routes/waymark.rs, description: "Reads a discovered waymark.md (a node's, or the map root's) fresh from disk." }
       config_parser:   { label: Config parser,   source: cairn-server/src/config.rs,          description: "Parses / serializes the intent YAML and composes nested includes." }
       graph_types:     { label: Graph types,     source: cairn-server/src/graph.rs,           description: "Runtime Node / Edge / NodeGraph types (symbol, description, pins, kinds)." }
       kinds:           { label: Kinds,           source: cairn-server/src/kinds.rs,           description: "NodeKind, EdgeKind, and SymbolKind enums." }
@@ -64,8 +72,9 @@ nodes:
 
 edges:
   # ─── Cross-system ─────────────────────────────────────────────────────────
-  - { from: frontend, to: backend,    annotation: HTTP fetch API, description: "The frontend fetches /graph, /file, /config, /save and /reload over HTTP; the backend is the single source of truth for the composed graph." }
+  - { from: frontend, to: backend,    annotation: HTTP fetch API, description: "The frontend fetches /graph, /file, /waymark, /config, /save and /reload over HTTP; the backend is the single source of truth for the composed graph." }
   - { from: backend,  to: yaml_store, annotation: parse + serialize }
+  - { from: backend,  to: waymark_doc, annotation: discovers + serves }
 
   # ─── Rust backend ─────────────────────────────────────────────────────────
   - { from: config_parser, to: graph_types,    annotation: produces NodeGraph }
@@ -83,6 +92,7 @@ edges:
   - { from: save,          to: config_parser,  annotation: serialize intent }
   - { from: save,          to: state_file,     annotation: writes state }
   - { from: config_route,  to: personal_config, annotation: read / write dotfile }
+  - { from: waymark_route, to: graph_types,    annotation: looks up node waymark }
 
   # ─── JS module import graph ───────────────────────────────────────────────
   - { from: mod_app, to: api_client,       annotation: fetchGraph / postSave }
@@ -113,6 +123,9 @@ edges:
   - { from: mod_render, to: mod_lod,      annotation: isNodeVisible / visibleDescendants }
   - { from: mod_render, to: mod_geometry, annotation: edge endpoints }
   - { from: mod_code_panel, to: api_client,   annotation: fetchFile }
+  - { from: mod_waymark, to: api_client,      annotation: fetchWaymark }
+  - { from: mod_app, to: mod_waymark,         annotation: W key + HUD button }
+  - { from: mod_interaction, to: mod_waymark, annotation: badge + context menu }
   - { from: mod_code_panel, to: mod_geometry, annotation: getViewportSize }
   - { from: debug, to: mod_geometry, annotation: overlay geometry }
   - { from: debug, to: mod_lod,      annotation: visibility }
